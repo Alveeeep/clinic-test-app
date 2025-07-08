@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.schemas.appointment import AppointmentDTO, AppointmentCreate
 from app.dao.dao import AppointmentsDAO
-from dependencies.dao_dep import get_session_with_commit
+from app.dependencies.dao_dep import get_session_with_commit
 
 router = APIRouter(tags=['Appointments'])
 
