@@ -9,7 +9,7 @@ class TestAppointmentsRouter:
     async def test_get_nonexistent_appointment(self, client):
         response = await client.get("/appointments/999")
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json() == {"detail": "Appointment not found"}
+        assert await response.json() == {"detail": "Appointment not found"}
 
     async def test_create_appointment(self, client, db_session):
         appointment_data = {
@@ -20,7 +20,7 @@ class TestAppointmentsRouter:
 
         create_response = await client.post("/appointments", json=appointment_data)
         assert create_response.status_code == status.HTTP_200_OK
-        assert create_response.json() == {"status": "ok"}
+        assert await create_response.json() == {"status": "ok"}
 
     async def test_create_invalid_appointment(self, client):
         invalid_data = {
