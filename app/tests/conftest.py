@@ -35,7 +35,7 @@ async def db_session() -> AsyncSession:
             yield await session.__aenter__()
             await session.rollback()  # Всегда откатываем после теста
         finally:
-            await session.close()
+            await session.__aexit__(None, None, None)
 
 
 @pytest.fixture
@@ -48,7 +48,7 @@ async def db_session_with_commit() -> AsyncSession:
             await session.rollback()
             raise
         finally:
-            await session.close()
+            await session.__aexit__(None, None, None)
 
 
 @pytest.fixture
@@ -60,17 +60,40 @@ async def db_session_without_commit() -> AsyncSession:
             await session.rollback()
             raise
         finally:
-            await session.close()
+            await session.__aexit__(None, None, None)
 
 
 @pytest.fixture
-def client(db_session):
-    # Переопределяем зависимости
-    app.dependency_overrides[get_session_without_commit] = lambda: db_session
-    app.dependency_overrides[get_session_with_commit] = lambda: db_session
+async def client():
+    # Создаем новую сессию для клиента
+    session = async_session_maker()
+
+    async def override_session_with_commit():
+        try:
+            yield await session.__aenter__()
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+        finally:
+            await session.__aexit__(None, None, None)
+
+    async def override_session_without_commit():
+        try:
+            yield await session.__aenter__()
+        except Exception:
+            await session.rollback()
+            raise
+        finally:
+            await session.__aexit__(None, None, None)
+
+    app.dependency_overrides.update({
+        get_session_with_commit: override_session_with_commit,
+        get_session_without_commit: override_session_without_commit,
+    })
 
     with TestClient(app) as test_client:
         yield test_client
 
-    # Очищаем переопределения
-    app.dependency_overrides = {}
+    app.dependency_overrides.clear()
+    await session.close()
