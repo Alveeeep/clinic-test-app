@@ -29,8 +29,7 @@ async def test_create_bad_pair(db_session):
         "doctor_id": 2,
         "start_time": datetime(2025, 7, 9, 22, 30, 10),
     }
-    async with db_session.begin():
-        first_appointment = await dao.add(AppointmentCreate(**data1))
+    first_appointment = await dao.add(AppointmentCreate(**data1))
     assert first_appointment is not None
     data2 = {
         "patient_name": "ТестЮзер333",
@@ -39,5 +38,4 @@ async def test_create_bad_pair(db_session):
     }
 
     with pytest.raises(Exception):
-        async with db_session.begin():
-            await dao.add(AppointmentCreate(**data2))
+        await dao.add(AppointmentCreate(**data2))

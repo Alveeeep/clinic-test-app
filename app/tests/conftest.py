@@ -15,11 +15,13 @@ async_session_maker = async_sessionmaker(
 @pytest_asyncio.fixture
 async def db_session() -> AsyncSession:
     async with async_session_maker() as session:
-        async with session.begin():
-            try:
-                yield session
-            finally:
-                await session.rollback()
+        transaction = await session.begin()
+        try:
+            yield session
+        finally:
+            if transaction.is_active:
+                await transaction.rollback()
+            await session.close()
 
 
 @pytest_asyncio.fixture
