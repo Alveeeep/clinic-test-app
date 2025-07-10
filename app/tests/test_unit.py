@@ -1,15 +1,14 @@
 from datetime import datetime
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dao.dao import AppointmentsDAO
 from app.schemas.appointment import AppointmentCreate
 
 
 @pytest.mark.asyncio
-async def test_create_appointment(db_session_with_commit: AsyncSession):
-    dao = AppointmentsDAO(session=db_session_with_commit)
+async def test_create_appointment(db_session):
+    dao = AppointmentsDAO(session=db_session)
     data = {
         "patient_name": "ТестЮзер123",
         "doctor_id": 1,
@@ -22,8 +21,8 @@ async def test_create_appointment(db_session_with_commit: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_create_bad_pair(db_session_with_commit: AsyncSession):
-    dao = AppointmentsDAO(session=db_session_with_commit)
+async def test_create_bad_pair(db_session):
+    dao = AppointmentsDAO(session=db_session)
 
     data1 = {
         "patient_name": "ТестЮзер222",

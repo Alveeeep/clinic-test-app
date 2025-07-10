@@ -1,9 +1,13 @@
-import pytest
-import pytest_asyncio
-from fastapi.testclient import TestClient
-from sqlalchemy.ext.asyncio import AsyncSession
+import asyncio
+from pathlib import Path
 
-from app.database.db import Base, async_session_maker, engine
+import pytest
+from alembic import command
+from alembic.config import Config
+from fastapi.testclient import TestClient
+
+from app.config import settings
+from app.database.db import Base, async_session_maker, engine  # noqa
 from app.dependencies.dao_dep import (
     get_session_with_commit,
     get_session_without_commit,
@@ -13,75 +17,62 @@ from app.main import app
 
 @pytest.fixture(scope="session")
 def event_loop():
-    import asyncio
-
     loop = asyncio.new_event_loop()
     yield loop
     loop.close()
 
 
+async def run_async_migrations():
+    alembic_cfg = Config()
+    alembic_cfg.set_main_option("script_location", "alembic")
+    alembic_cfg.set_main_option("sqlalchemy.url", str(settings.DB_URL))
+
+    # Создаем новую ревизию
+    async with engine.begin() as conn:
+        await conn.run_sync(
+            lambda conn: command.revision(
+                config=alembic_cfg, autogenerate=True, message="test_migration"
+            )
+        )
+
+    async with engine.begin() as conn:
+        await conn.run_sync(lambda conn: command.upgrade(alembic_cfg, "head"))
+
+
 @pytest.fixture(scope="session", autouse=True)
 async def prepare_database():
-    from alembic import command
-    from alembic.config import Config
+    migrations_dir = Path("alembic/versions")
+    if migrations_dir.exists():
+        for f in migrations_dir.glob("*.py"):
+            f.unlink()
 
-    alembic_cfg = Config("alembic.ini")
-    command.upgrade(alembic_cfg, "head")
+    # Запускаем миграции
+    await run_async_migrations()
 
     yield
 
-    # Асинхронная очистка
-    import asyncio
-    from app.database.db import engine
-
-    async def drop_all():
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.drop_all)
-
-    asyncio.get_event_loop().run_until_complete(drop_all())
+    # Очистка после тестов
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+        await conn.run_sync(
+            lambda conn: conn.execute("DROP TABLE IF EXISTS alembic_version")
+        )
 
 
-@pytest_asyncio.fixture
-async def db_session() -> AsyncSession:
+@pytest.fixture
+async def db_session():
     async with async_session_maker() as session:
         try:
             yield session
             await session.rollback()
-        finally:
-            await session.close()
-
-
-@pytest_asyncio.fixture
-async def db_session_with_commit() -> AsyncSession:
-    async with async_session_maker() as session:
-        try:
-            yield session
-            await session.commit()
-        except Exception:
-            await session.rollback()
-            raise
-        finally:
-            await session.close()
-
-
-@pytest_asyncio.fixture
-async def db_session_without_commit() -> AsyncSession:
-    async with async_session_maker() as session:
-        try:
-            yield session
-        except Exception:
-            await session.rollback()
-            raise
         finally:
             await session.close()
 
 
 @pytest.fixture
 def client():
-    session_factory = async_session_maker(bind=engine)
-
-    async def override_session_with_commit():
-        async with session_factory() as session:
+    async def override_get_db():
+        async with async_session_maker() as session:
             try:
                 yield session
                 await session.commit()
@@ -89,18 +80,10 @@ def client():
                 await session.rollback()
                 raise
 
-    async def override_session_without_commit():
-        async with session_factory() as session:
-            try:
-                yield session
-            finally:
-                await session.rollback()
-                await session.close()
-
     app.dependency_overrides.update(
         {
-            get_session_with_commit: override_session_with_commit,
-            get_session_without_commit: override_session_without_commit,
+            get_session_with_commit: override_get_db,
+            get_session_without_commit: override_get_db,
         }
     )
 
