@@ -3,6 +3,7 @@ FROM python:3.12-slim
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 COPY --chown=app:app pyproject.toml uv.lock ./
 
+RUN uv venv
 RUN uv sync --locked
 
 RUN useradd -m -u 1001 app && \

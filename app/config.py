@@ -20,14 +20,6 @@ class Settings(BaseSettings):
             f"{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
         )
 
-    @property
-    def TEST_DB_URL(self) -> str:
-        return (
-            f"postgresql+psycopg2://{self.POSTGRES_USER}:"
-            f"{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:"
-            f"{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
-        )
-
     model_config = SettingsConfigDict(env_file=f"{BASE_DIR}/.env")
 
 
