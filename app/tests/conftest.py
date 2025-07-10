@@ -1,3 +1,4 @@
+import pytest
 import pytest_asyncio
 from alembic.command import upgrade
 from alembic.config import Config
@@ -11,6 +12,15 @@ from app.dependencies.dao_dep import (
     get_session_without_commit,
 )
 from app.main import app
+
+
+@pytest.fixture(scope="session")
+def event_loop():
+    import asyncio
+
+    loop = asyncio.new_event_loop()
+    yield loop
+    loop.close()
 
 
 @pytest_asyncio.fixture(scope="session", autouse=True)
@@ -30,65 +40,59 @@ async def prepare_database():
 
 @pytest_asyncio.fixture
 async def db_session() -> AsyncSession:
-    session = await async_session_maker().__aenter__()
-    try:
-        yield await session.__aenter__()
-        await session.rollback()  # Всегда откатываем после теста
-    finally:
-        await session.__aexit__(None, None, None)
+    async with async_session_maker() as session:
+        try:
+            yield session
+            await session.rollback()
+        finally:
+            await session.close()
 
 
 @pytest_asyncio.fixture
 async def db_session_with_commit() -> AsyncSession:
-    session = await async_session_maker().__aenter__()
-    try:
-        yield session
-        await session.commit()
-    except Exception:
-        await session.rollback()
-        raise
-    finally:
-        await session.__aexit__(None, None, None)
+    async with async_session_maker() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+        finally:
+            await session.close()
 
 
 @pytest_asyncio.fixture
 async def db_session_without_commit() -> AsyncSession:
-    session = await async_session_maker().__aenter__()
-    try:
-        yield session
-    except Exception:
-        await session.rollback()
-        raise
-    finally:
-        await session.__aexit__(None, None, None)
+    async with async_session_maker() as session:
+        try:
+            yield session
+        except Exception:
+            await session.rollback()
+            raise
+        finally:
+            await session.close()
 
 
-@pytest_asyncio.fixture
-async def client():
-    # Создаем новую сессию для клиента
-    session = async_session_maker()
+@pytest.fixture
+def client():
+    session_factory = async_session_maker(bind=engine)
 
     async def override_session_with_commit():
-        s = await session.__aenter__()
-        try:
-            yield s
-            await s.commit()
-        except Exception:
-            await s.rollback()
-            raise
-        finally:
-            await s.__aexit__(None, None, None)
+        async with session_factory() as session:
+            try:
+                yield session
+                await session.commit()
+            except Exception:
+                await session.rollback()
+                raise
 
     async def override_session_without_commit():
-        s = await session.__aenter__()
-        try:
-            yield s
-            await s.rollback()
-        except Exception:
-            await s.rollback()
-            raise
-        finally:
-            await s.__aexit__(None, None, None)
+        async with session_factory() as session:
+            try:
+                yield session
+            finally:
+                await session.rollback()
+                await session.close()
 
     app.dependency_overrides.update(
         {
@@ -101,4 +105,3 @@ async def client():
         yield test_client
 
     app.dependency_overrides.clear()
-    await session.close()
