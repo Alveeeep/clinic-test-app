@@ -3,6 +3,7 @@ from alembic.command import upgrade
 from alembic.config import Config
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.config import settings
 from app.database.db import Base, async_session_maker, engine
 from app.dependencies.dao_dep import (
