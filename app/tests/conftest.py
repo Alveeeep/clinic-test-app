@@ -32,7 +32,7 @@ async def prepare_database():
 async def db_session() -> AsyncSession:
     async with async_session_maker() as session:
         try:
-            yield session
+            yield await session.__aenter__()
             await session.rollback()  # Всегда откатываем после теста
         finally:
             await session.close()
@@ -42,7 +42,7 @@ async def db_session() -> AsyncSession:
 async def db_session_with_commit() -> AsyncSession:
     async with async_session_maker() as session:
         try:
-            yield session
+            yield await session.__aenter__()
             await session.commit()
         except Exception:
             await session.rollback()
@@ -55,7 +55,7 @@ async def db_session_with_commit() -> AsyncSession:
 async def db_session_without_commit() -> AsyncSession:
     async with async_session_maker() as session:
         try:
-            yield session
+            yield await session.__aenter__()
         except Exception:
             await session.rollback()
             raise
