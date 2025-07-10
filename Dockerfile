@@ -7,8 +7,7 @@ ENV PYTHONFAULTHANDLER=1 \
     PATH="/home/app/.local/bin:${PATH}"
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
-
-COPY . /app
+COPY --chown=app:app pyproject.toml ./
 
 RUN uv sync --locked
 
@@ -16,6 +15,7 @@ RUN groupadd -g 10000 usergroup && \
     useradd -u 10000 -g usergroup -m -s /bin/bash app && \
     echo "app ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
+COPY --chown=app:app . /app
 WORKDIR /app
 
 USER app
