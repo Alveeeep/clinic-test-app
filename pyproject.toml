@@ -1,11 +1,11 @@
 [project]
-name = "clinic-test-app"
+name = "clinic-test-app312test"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = [
-    "alembic>=1.16.2",
+    "alembic>=1.16.3",
     "asyncpg>=0.30.0",
     "black>=25.1.0",
     "fastapi[all]>=0.116.0",
