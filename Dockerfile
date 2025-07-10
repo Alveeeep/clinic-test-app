@@ -7,7 +7,7 @@ ENV PYTHONFAULTHANDLER=1 \
     PATH="/home/app/.local/bin:${PATH}"
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
-COPY --chown=app:app pyproject.toml ./
+COPY --chown=app:app pyproject.toml uv.lock ./
 
 RUN uv sync --locked
 
