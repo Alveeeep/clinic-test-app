@@ -23,7 +23,7 @@ def event_loop():
     loop.close()
 
 
-@pytest_asyncio.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 async def prepare_database():
     alembic_cfg = Config("alembic.ini")
     alembic_cfg.set_main_option("sqlalchemy.url", str(settings.DB_URL))
