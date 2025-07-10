@@ -1,10 +1,10 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
 
 
 class AppointmentCreate(BaseModel):
-    patient_name: str
-    doctor_id: int
+    patient_name: str = Field(min_length=3)
+    doctor_id: int = Field(gt=0)
     start_time: datetime
 
 
