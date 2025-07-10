@@ -13,7 +13,7 @@ services:
   migrations:
     build: .
     env_file: .env
-    command: alembic upgrade head
+    command: uv run alembic upgrade head
     depends_on:
       postgres:
         condition: service_healthy
