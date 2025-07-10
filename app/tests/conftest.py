@@ -65,8 +65,8 @@ async def db_session_without_commit():
 @pytest.fixture
 def client(db_session):
     # Переопределяем зависимости
-    app.dependency_overrides[get_session_without_commit] = db_session
-    app.dependency_overrides[get_session_with_commit] = db_session
+    app.dependency_overrides[get_session_without_commit] = lambda: db_session
+    app.dependency_overrides[get_session_with_commit] = lambda: db_session
 
     with TestClient(app) as test_client:
         yield test_client
