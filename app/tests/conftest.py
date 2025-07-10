@@ -25,17 +25,23 @@ def event_loop():
 
 @pytest.fixture(scope="session", autouse=True)
 async def prepare_database():
-    alembic_cfg = Config("alembic.ini")
-    alembic_cfg.set_main_option("sqlalchemy.url", str(settings.DB_URL))
-    upgrade(alembic_cfg, "head")
+    from alembic import command
+    from alembic.config import Config
 
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    alembic_cfg = Config("alembic.ini")
+    command.upgrade(alembic_cfg, "head")
 
     yield
 
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+    # Асинхронная очистка
+    import asyncio
+    from app.database.db import engine
+
+    async def drop_all():
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+
+    asyncio.get_event_loop().run_until_complete(drop_all())
 
 
 @pytest_asyncio.fixture
