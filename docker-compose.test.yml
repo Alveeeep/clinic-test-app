@@ -2,7 +2,7 @@ services:
   postgres_test:
     image: postgres:17.5
     env_file:
-      #- .env.test
+      - .env.test
       - .env.test.example
     ports:
       - "5433:5432"
@@ -15,7 +15,7 @@ services:
   app_test:
     build: .
     env_file:
-      #- .env.test
+      - .env.test
       - .env.test.example
     command: bash -c "uv run pytest -v app/tests/"
     depends_on:
