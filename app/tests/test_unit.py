@@ -31,7 +31,7 @@ async def test_create_bad_pair(db_session):
     }
     first_appointment = await dao.add(AppointmentCreate(**data1))
     assert first_appointment is not None
-
+    await db_session.flush()
     data2 = {
         "patient_name": "ТестЮзер333",
         "doctor_id": 2,
@@ -40,3 +40,5 @@ async def test_create_bad_pair(db_session):
 
     with pytest.raises(Exception):
         await dao.add(AppointmentCreate(**data2))
+    await db_session.flush()
+    await db_session.commit()

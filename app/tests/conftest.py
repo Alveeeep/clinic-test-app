@@ -19,7 +19,7 @@ from app.main import app
 
 # Настройка сессий с явным управлением транзакциями
 async_session_maker = async_sessionmaker(
-    engine, autoflush=False, expire_on_commit=False, future=True
+    engine, autoflush=False, expire_on_commit=False
 )
 
 
