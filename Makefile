@@ -13,17 +13,17 @@ lint:
 	uv run flake8 app
 
 test-compose:
-	docker-compose -f docker-compose.test.yml up --build --abort-on-container-exit
+	docker compose -f docker-compose.test.yml up --build --abort-on-container-exit
 
 test: test-compose
 
 check: lint test-compose
 
 up:
-	docker-compose up -d --build
+	docker compose up -d --build
 
 down:
-	docker-compose down
+	docker compose down
 
 migrate:
-	docker-compose exec app alembic upgrade head
+	docker compose exec app alembic upgrade head
