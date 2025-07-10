@@ -27,7 +27,7 @@ services:
     env_file:
       - .env.test
       - .env.test.example
-    command: bash -c "uv run pytest -v app/tests/"
+    command: uv run pytest -v app/tests/
     depends_on:
       migrations_test:
         condition: service_completed_successfully
