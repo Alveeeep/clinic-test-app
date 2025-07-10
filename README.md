@@ -62,3 +62,9 @@ docker compose up -d --build
 - updated_at - дата обновления записи
 
 ### Также реализован [Unique Constraint](https://docs.sqlalchemy.org/en/20/core/constraints.html#:~:text=support%20with%20SQLite-,UNIQUE%20Constraint,-%C2%B6) из SQLAlchemy, чтобы не записать к одному врачу двух пациентов на одно время
+
+## Activity-диаграмма
+
+![activity.jpg](docs%2Factivity.jpg)
+
+##

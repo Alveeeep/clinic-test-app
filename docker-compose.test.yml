@@ -12,24 +12,22 @@ services:
       timeout: 5s
       retries: 7
 
-  migrations_test:
-    build: .
+  test_runner:
+    build:
+      context: .
     env_file:
       - .env.test
       - .env.test.example
-    command: uv run alembic upgrade head
+    command: >
+      sh -c "until pg_isready -h postgres_test -p 5432 -U $${POSTGRES_USER} -d $${POSTGRES_DB};
+      do
+        echo 'Waiting for database...';
+        sleep 2;
+      done &&
+      uv run alembic upgrade head &&
+      uv run pytest -v"
     depends_on:
       postgres_test:
         condition: service_healthy
-
-  app_test:
-    build: .
-    env_file:
-      - .env.test
-      - .env.test.example
-    command: uv run pytest -v app/tests/
-    depends_on:
-      migrations_test:
-        condition: service_completed_successfully
     volumes:
       - .:/app
