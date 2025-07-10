@@ -3,7 +3,7 @@ FROM python:3.12-slim
 ENV PYTHONFAULTHANDLER=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONHASHSEED=random \
-    UV_CACHE_DIR=/dev/null
+    UV_CACHE_DIR=/tmp/uv_cache
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
