@@ -4,7 +4,8 @@ install:
 	@if ! command -v uv &> /dev/null; then \
 		curl -LsSf https://astral.sh/uv/install.sh | sh; \
 	fi
-	uv sync
+	uv sync --locked
+    uv add black isort flake8
 
 lint:
 	black --check app
