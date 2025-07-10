@@ -62,6 +62,7 @@ async def db_session_without_commit() -> AsyncSession:
     finally:
         await session.__aexit__(None, None, None)
 
+
 @pytest.fixture
 async def client():
     # Создаем новую сессию для клиента
