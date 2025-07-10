@@ -13,6 +13,9 @@ lint:
 	uv run flake8 app
 
 test-compose:
+	@if [ ! -f .env.test ]; then \
+		cp .env.test.example .env.test || true; \
+	fi
 	docker compose -f docker-compose.test.yml up --build --abort-on-container-exit
 
 test: test-compose
