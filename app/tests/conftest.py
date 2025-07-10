@@ -39,3 +39,10 @@ async def client():
         transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
         yield client
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def prevent_parallel_transactions(db_session: AsyncSession):
+    async with db_session.begin_nested() as transaction:
+        yield
+        await transaction.rollback()
