@@ -2,6 +2,7 @@ import asyncio
 from pathlib import Path
 
 import pytest
+import pytest_asyncio
 from alembic import command
 from alembic.config import Config
 from fastapi.testclient import TestClient
@@ -59,20 +60,37 @@ async def prepare_database():
         )
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def db_session():
-    async with async_session_maker() as session:
+    session = async_session_maker()
+    async with session() as s:
         try:
-            yield session
-            await session.rollback()
+            yield s
+            await s.rollback()
         finally:
-            await session.close()
+            await s.close()
+
+
+@pytest_asyncio.fixture
+async def db_session_with_commit():
+    session = async_session_maker()
+    async with session() as s:
+        try:
+            yield s
+            await s.commit()
+        except Exception:
+            await s.rollback()
+            raise
+        finally:
+            await s.close()
 
 
 @pytest.fixture
 def client():
+    session_factory = async_session_maker
+
     async def override_get_db():
-        async with async_session_maker() as session:
+        async with session_factory() as session:
             try:
                 yield session
                 await session.commit()
