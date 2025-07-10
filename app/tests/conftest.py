@@ -5,8 +5,10 @@ from fastapi.testclient import TestClient
 
 from app.config import settings
 from app.database.db import Base, async_session_maker, engine
-from app.dependencies.dao_dep import (get_session_with_commit,
-                                      get_session_without_commit)
+from app.dependencies.dao_dep import (
+    get_session_with_commit,
+    get_session_without_commit,
+)
 from app.main import app
 
 

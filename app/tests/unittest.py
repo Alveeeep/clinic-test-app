@@ -10,7 +10,11 @@ from app.schemas.appointment import AppointmentCreate
 @pytest.mark.asyncio
 async def test_create_appointment(db_session_with_commit: AsyncSession):
     dao = AppointmentsDAO(session=db_session_with_commit)
-    data = {"patient_name": "ТестЮзер123", "doctor_id": 1, "start_time": datetime.now()}
+    data = {
+        "patient_name": "ТестЮзер123",
+        "doctor_id": 1,
+        "start_time": datetime.now(),
+    }
     appointment = AppointmentCreate(**data)
     result = await dao.add(appointment)
     assert result is not None

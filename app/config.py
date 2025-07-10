@@ -14,8 +14,11 @@ class Settings(BaseSettings):
     # Формируем DB_URL на основе полученных переменных
     @property
     def DB_URL(self) -> str:
-        return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:\
-        {self.POSTGRES_PORT}/{self.POSTGRES_NAME}"
+        return (
+            f"postgresql+asyncpg://{self.POSTGRES_USER}:"
+            f"{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:"
+            f"{self.POSTGRES_PORT}/{self.POSTGRES_NAME}"
+        )
 
     model_config = SettingsConfigDict(env_file=f"{BASE_DIR}/.env")
 

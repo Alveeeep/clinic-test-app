@@ -3,9 +3,6 @@ from datetime import datetime
 import pytest
 from fastapi import status
 
-from app.dao.dao import AppointmentsDAO
-from app.schemas.appointment import AppointmentCreate
-
 
 @pytest.mark.asyncio
 class TestAppointmentsRouter:

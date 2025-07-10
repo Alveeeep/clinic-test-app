@@ -7,6 +7,7 @@ import app.models  # noqa
 from app.config import database_url as DATABASE_URL
 from app.database.db import Base
 
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
