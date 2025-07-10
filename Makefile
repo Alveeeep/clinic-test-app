@@ -16,7 +16,7 @@ test-compose:
 	@if [ ! -f .env.test ]; then \
 		cp .env.test.example .env.test || true; \
 	fi
-	docker compose -f docker-compose.test.yml up --build --abort-on-container-exit
+	docker compose -f docker-compose.test.yml up --build
 
 test: test-compose
 
