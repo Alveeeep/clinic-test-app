@@ -3,7 +3,7 @@ from alembic.command import upgrade
 from alembic.config import Config
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
-
+import pytest_asyncio
 from app.config import settings
 from app.database.db import Base, async_session_maker, engine
 from app.dependencies.dao_dep import (
@@ -13,7 +13,7 @@ from app.dependencies.dao_dep import (
 from app.main import app
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest_asyncio.fixture(scope="session", autouse=True)
 async def prepare_database():
     alembic_cfg = Config("alembic.ini")
     alembic_cfg.set_main_option("sqlalchemy.url", str(settings.DB_URL))
@@ -28,7 +28,7 @@ async def prepare_database():
         await conn.run_sync(Base.metadata.drop_all)
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def db_session() -> AsyncSession:
     session = await async_session_maker().__aenter__()
     try:
@@ -38,7 +38,7 @@ async def db_session() -> AsyncSession:
         await session.__aexit__(None, None, None)
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def db_session_with_commit() -> AsyncSession:
     session = await async_session_maker().__aenter__()
     try:
@@ -51,7 +51,7 @@ async def db_session_with_commit() -> AsyncSession:
         await session.__aexit__(None, None, None)
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def db_session_without_commit() -> AsyncSession:
     session = await async_session_maker().__aenter__()
     try:
@@ -63,7 +63,7 @@ async def db_session_without_commit() -> AsyncSession:
         await session.__aexit__(None, None, None)
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def client():
     # Создаем новую сессию для клиента
     session = async_session_maker()
