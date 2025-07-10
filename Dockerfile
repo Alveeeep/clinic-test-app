@@ -12,8 +12,9 @@ WORKDIR /app
 
 RUN uv sync --locked
 
-RUN adduser -D -u 1001 app \
-    && chown -R app:app /app
+RUN groupadd -g 10000 usergroup && \
+    useradd -u 10000 -g usergroup -m -s /bin/bash app && \
+    echo "app ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 USER app
 
 EXPOSE 8000
