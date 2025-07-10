@@ -8,9 +8,9 @@ install:
 	uv add black isort flake8
 
 lint:
-	black --check app
-	isort --check-only app
-	flake8 app
+	uv run black --check app
+	uv run isort --check-only app
+	uv run flake8 app
 
 test-compose:
 	docker-compose -f docker-compose.test.yml up --build --abort-on-container-exit
