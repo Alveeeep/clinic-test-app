@@ -1,4 +1,3 @@
-import pytest
 import pytest_asyncio
 from alembic.command import upgrade
 from alembic.config import Config
