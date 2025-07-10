@@ -17,7 +17,7 @@ services:
     env_file:
       - .env.test
       - .env.test.example
-    command: bash -c "uv run pytest -v app/tests/"
+    command: bash -c "uv run pytest -v tests/"
     depends_on:
       postgres_test:
         condition: service_healthy
