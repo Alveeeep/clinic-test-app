@@ -35,7 +35,6 @@ async def run_async_migrations():
                 config=alembic_cfg, autogenerate=True, message="test_migration"
             )
         )
-    print("Миграция Создана")
     async with engine.begin() as conn:
         await conn.run_sync(lambda conn: command.upgrade(alembic_cfg, "head"))
 
