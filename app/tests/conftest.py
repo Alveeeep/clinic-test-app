@@ -1,12 +1,13 @@
 import pytest
-from fastapi.testclient import TestClient
 from alembic.command import upgrade
 from alembic.config import Config
+from fastapi.testclient import TestClient
 
-from app.main import app
-from app.database.db import Base, engine, async_session_maker
 from app.config import settings
-from app.dependencies.dao_dep import get_session_with_commit, get_session_without_commit
+from app.database.db import Base, async_session_maker, engine
+from app.dependencies.dao_dep import (get_session_with_commit,
+                                      get_session_without_commit)
+from app.main import app
 
 
 @pytest.fixture(scope="session", autouse=True)

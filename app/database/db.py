@@ -1,7 +1,11 @@
 from datetime import datetime
-from sqlalchemy import Integer, func, TIMESTAMP
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine, AsyncAttrs
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, declared_attr
+
+from sqlalchemy import TIMESTAMP, Integer, func
+from sqlalchemy.ext.asyncio import (AsyncAttrs, async_sessionmaker,
+                                    create_async_engine)
+from sqlalchemy.orm import (DeclarativeBase, Mapped, declared_attr,
+                            mapped_column)
+
 from app.config import database_url
 
 engine = create_async_engine(database_url)
@@ -14,11 +18,9 @@ class Base(AsyncAttrs, DeclarativeBase):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
-        TIMESTAMP,
-        server_default=func.now(),
-        onupdate=func.now()
+        TIMESTAMP, server_default=func.now(), onupdate=func.now()
     )
 
     @declared_attr
     def __tablename__(self) -> str:
-        return self.__name__.lower() + 's'
+        return self.__name__.lower() + "s"

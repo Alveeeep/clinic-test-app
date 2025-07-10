@@ -1,8 +1,10 @@
-import pytest
 from datetime import datetime
+
+import pytest
 from fastapi import status
-from app.schemas.appointment import AppointmentCreate
+
 from app.dao.dao import AppointmentsDAO
+from app.schemas.appointment import AppointmentCreate
 
 
 @pytest.mark.asyncio
@@ -16,7 +18,7 @@ class TestAppointmentsRouter:
         appointment_data = {
             "patient_name": "Иванов Иван",
             "doctor_id": 1,
-            "start_time": datetime(2025, 7, 10, 4, 30).isoformat()
+            "start_time": datetime(2025, 7, 10, 4, 30).isoformat(),
         }
 
         create_response = await client.post("/appointments", json=appointment_data)
@@ -27,7 +29,7 @@ class TestAppointmentsRouter:
         invalid_data = {
             "patient_name": "",
             "doctor_id": 1,
-            "start_time": datetime(2025, 7, 10, 14, 30).isoformat()
+            "start_time": datetime(2025, 7, 10, 14, 30).isoformat(),
         }
 
         response = await client.post("/appointments", json=invalid_data)
@@ -37,7 +39,7 @@ class TestAppointmentsRouter:
         appointment_data = {
             "patient_name": "Петров Петр",
             "doctor_id": 2,
-            "start_time": datetime(2025, 7, 11, 10, 0).isoformat()
+            "start_time": datetime(2025, 7, 11, 10, 0).isoformat(),
         }
 
         response1 = await client.post("/appointments", json=appointment_data)

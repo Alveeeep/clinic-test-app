@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+
 from app.routers.appointments import router
 from app.routers.health import health_router
 

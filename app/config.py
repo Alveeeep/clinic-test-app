@@ -1,9 +1,10 @@
 import os
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    BASE_DIR: str = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    BASE_DIR: str = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     POSTGRES_HOST: str
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
