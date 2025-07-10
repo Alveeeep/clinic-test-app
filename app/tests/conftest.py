@@ -87,10 +87,12 @@ async def client():
         finally:
             await session.__aexit__(None, None, None)
 
-    app.dependency_overrides.update({
-        get_session_with_commit: override_session_with_commit,
-        get_session_without_commit: override_session_without_commit,
-    })
+    app.dependency_overrides.update(
+        {
+            get_session_with_commit: override_session_with_commit,
+            get_session_without_commit: override_session_without_commit,
+        }
+    )
 
     with TestClient(app) as test_client:
         yield test_client
