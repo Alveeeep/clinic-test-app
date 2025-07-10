@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime
 
 import pytest
@@ -16,6 +17,7 @@ async def test_create_appointment(db_session):
     }
     appointment = AppointmentCreate(**data)
     result = await dao.add(appointment)
+    await asyncio.sleep(0.5)
     assert result is not None
     assert result.patient_name == "ТестЮзер123"
 
@@ -23,20 +25,20 @@ async def test_create_appointment(db_session):
 @pytest.mark.asyncio
 async def test_create_bad_pair(db_session):
     dao = AppointmentsDAO(session=db_session)
-    async with db_session.begin():
-        data1 = {
-            "patient_name": "ТестЮзер222",
-            "doctor_id": 2,
-            "start_time": datetime(2025, 7, 9, 22, 30, 10),
-        }
-        first_appointment = await dao.add(AppointmentCreate(**data1))
-        assert first_appointment is not None
-        async with db_session.begin_nested():
-            data2 = {
-                "patient_name": "ТестЮзер333",
-                "doctor_id": 2,
-                "start_time": datetime(2025, 7, 9, 22, 30, 10),
-            }
 
-            with pytest.raises(Exception):
-                await dao.add(AppointmentCreate(**data2))
+    data1 = {
+        "patient_name": "ТестЮзер222",
+        "doctor_id": 2,
+        "start_time": datetime(2025, 7, 9, 22, 30, 10),
+    }
+    first_appointment = await dao.add(AppointmentCreate(**data1))
+    await asyncio.sleep(0.5)
+    assert first_appointment is not None
+    data2 = {
+        "patient_name": "ТестЮзер333",
+        "doctor_id": 2,
+        "start_time": datetime(2025, 7, 9, 22, 30, 10),
+    }
+
+    with pytest.raises(Exception):
+        await dao.add(AppointmentCreate(**data2))
