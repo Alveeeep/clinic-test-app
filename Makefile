@@ -2,7 +2,7 @@
 
 install:
     @if ! command -v uv &> /dev/null; then \
-        curl -LsSf https://astral.sh/uv/install.sh | sh; \
+    curl -LsSf https://astral.sh/uv/install.sh | sh; \
     fi
     uv sync
 
@@ -14,8 +14,10 @@ lint:
 test-compose:
     docker-compose -f docker-compose.test.yml up --build --abort-on-container-exit
 
-test: test-compose
-check: lint test-compose
+test:
+    test-compose
+check:
+    lint test-compose
 
 up:
     docker-compose up -d --build
