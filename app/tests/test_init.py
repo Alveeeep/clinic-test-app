@@ -12,7 +12,7 @@ async def test_get_nonexistent_appointment(client):
 
 
 @pytest.mark.asyncio
-async def test_create_appointment(client, db_session):
+async def test_create_appointment(client):
     appointment_data = {
         "patient_name": "Иванов Иван",
         "doctor_id": 1,

@@ -6,14 +6,21 @@ import pytest_asyncio
 from alembic import command
 from alembic.config import Config
 from fastapi.testclient import TestClient
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.config import settings
-from app.database.db import Base, async_session_maker, engine  # noqa
+from app.database.db import Base, engine
 from app.dependencies.dao_dep import (
     get_session_with_commit,
     get_session_without_commit,
 )
 from app.main import app
+
+
+# Настройка сессий с явным управлением транзакциями
+async_session_maker = async_sessionmaker(
+    engine, autoflush=False, expire_on_commit=False, future=True
+)
 
 
 @pytest.fixture(scope="session")
@@ -23,75 +30,63 @@ def event_loop():
     loop.close()
 
 
-async def run_async_migrations():
+async def apply_migrations():
     alembic_cfg = Config()
     alembic_cfg.set_main_option("script_location", "alembic")
     alembic_cfg.set_main_option("sqlalchemy.url", str(settings.DB_URL))
 
-    # Создаем новую ревизию
     async with engine.begin() as conn:
-        await conn.run_sync(
-            lambda conn: command.revision(
-                config=alembic_cfg, autogenerate=True, message="test_migration"
-            )
-        )
-    async with engine.begin() as conn:
-        await conn.run_sync(lambda conn: command.upgrade(alembic_cfg, "head"))
+        await conn.run_sync(lambda c: command.upgrade(alembic_cfg, "head"))
 
 
 @pytest.fixture(scope="session", autouse=True)
 async def prepare_database():
+    # Очистка старых миграций
     migrations_dir = Path("alembic/versions")
     if migrations_dir.exists():
         for f in migrations_dir.glob("*.py"):
             f.unlink()
 
-    # Запускаем миграции
-    await run_async_migrations()
-
+    # Применение миграций
+    await apply_migrations()
     yield
 
     # Очистка после тестов
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
-        await conn.run_sync(
-            lambda conn: conn.execute("DROP TABLE IF EXISTS alembic_version")
-        )
 
 
 @pytest_asyncio.fixture
-async def db_session():
+async def db_session() -> AsyncSession:
     async with async_session_maker() as session:
-        try:
-            yield session
-            await session.rollback()
-        finally:
-            await session.close()
+        async with session.begin():
+            try:
+                yield session
+            finally:
+                await session.rollback()
 
 
 @pytest_asyncio.fixture
-async def db_session_with_commit():
+async def db_session_with_commit() -> AsyncSession:
     async with async_session_maker() as session:
-        try:
-            yield session
-            await session.commit()
-        except Exception:
-            await session.rollback()
-            raise
-        finally:
-            await session.close()
+        async with session.begin():
+            try:
+                yield session
+            except Exception:
+                await session.rollback()
+                raise
 
 
 @pytest.fixture
 def client():
     async def override_get_db():
         async with async_session_maker() as session:
-            try:
-                yield session
-                await session.commit()
-            except Exception:
-                await session.rollback()
-                raise
+            async with session.begin():
+                try:
+                    yield session
+                except Exception:
+                    await session.rollback()
+                    raise
 
     app.dependency_overrides.update(
         {
