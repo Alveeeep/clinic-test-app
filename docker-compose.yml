@@ -10,14 +10,24 @@ services:
       timeout: 5s
       retries: 5
 
+  migrations:
+    build: .
+    env_file: .env
+    command: alembic upgrade head
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - .:/app
+
   app:
     build: .
     env_file: .env
     ports:
       - "8000:8000"
     depends_on:
-      postgres:
-        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
     volumes:
       - .:/app
 
