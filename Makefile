@@ -5,7 +5,7 @@ install:
 		curl -LsSf https://astral.sh/uv/install.sh | sh; \
 	fi
 	uv sync --locked
-    uv add black isort flake8
+	uv add black isort flake8
 
 lint:
 	black --check app
