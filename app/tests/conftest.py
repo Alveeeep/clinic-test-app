@@ -30,38 +30,37 @@ async def prepare_database():
 
 @pytest.fixture
 async def db_session() -> AsyncSession:
-    async with async_session_maker() as session:
-        try:
-            yield await session.__aenter__()
-            await session.rollback()  # Всегда откатываем после теста
-        finally:
-            await session.__aexit__(None, None, None)
+    session = await async_session_maker().__aenter__()
+    try:
+        yield await session.__aenter__()
+        await session.rollback()  # Всегда откатываем после теста
+    finally:
+        await session.__aexit__(None, None, None)
 
 
 @pytest.fixture
 async def db_session_with_commit() -> AsyncSession:
-    async with async_session_maker() as session:
-        try:
-            yield await session.__aenter__()
-            await session.commit()
-        except Exception:
-            await session.rollback()
-            raise
-        finally:
-            await session.__aexit__(None, None, None)
+    session = await async_session_maker().__aenter__()
+    try:
+        yield session
+        await session.commit()
+    except Exception:
+        await session.rollback()
+        raise
+    finally:
+        await session.__aexit__(None, None, None)
 
 
 @pytest.fixture
 async def db_session_without_commit() -> AsyncSession:
-    async with async_session_maker() as session:
-        try:
-            yield await session.__aenter__()
-        except Exception:
-            await session.rollback()
-            raise
-        finally:
-            await session.__aexit__(None, None, None)
-
+    session = await async_session_maker().__aenter__()
+    try:
+        yield session
+    except Exception:
+        await session.rollback()
+        raise
+    finally:
+        await session.__aexit__(None, None, None)
 
 @pytest.fixture
 async def client():
@@ -69,23 +68,26 @@ async def client():
     session = async_session_maker()
 
     async def override_session_with_commit():
+        s = await session.__aenter__()
         try:
-            yield await session.__aenter__()
-            await session.commit()
+            yield s
+            await s.commit()
         except Exception:
-            await session.rollback()
+            await s.rollback()
             raise
         finally:
-            await session.__aexit__(None, None, None)
+            await s.__aexit__(None, None, None)
 
     async def override_session_without_commit():
+        s = await session.__aenter__()
         try:
-            yield await session.__aenter__()
+            yield s
+            await s.rollback()
         except Exception:
-            await session.rollback()
+            await s.rollback()
             raise
         finally:
-            await session.__aexit__(None, None, None)
+            await s.__aexit__(None, None, None)
 
     app.dependency_overrides.update(
         {
