@@ -1,11 +1,10 @@
 import asyncio
 from pathlib import Path
-
+from httpx import AsyncClient, ASGITransport
 import pytest
 import pytest_asyncio
 from alembic import command
 from alembic.config import Config
-from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.config import settings
@@ -77,8 +76,8 @@ async def db_session_with_commit() -> AsyncSession:
                 raise
 
 
-@pytest.fixture
-def client():
+@pytest_asyncio.fixture
+async def client():
     async def override_get_db():
         async with async_session_maker() as session:
             async with session.begin():
@@ -95,7 +94,7 @@ def client():
         }
     )
 
-    with TestClient(app) as test_client:
-        yield test_client
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        yield client
 
     app.dependency_overrides.clear()
