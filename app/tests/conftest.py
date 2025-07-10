@@ -2,7 +2,7 @@ import pytest
 from alembic.command import upgrade
 from alembic.config import Config
 from fastapi.testclient import TestClient
-
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.database.db import Base, async_session_maker, engine
 from app.dependencies.dao_dep import (
@@ -28,7 +28,7 @@ async def prepare_database():
 
 
 @pytest.fixture
-async def db_session():
+async def db_session() -> AsyncSession:
     async with async_session_maker() as session:
         try:
             yield session
@@ -38,7 +38,7 @@ async def db_session():
 
 
 @pytest.fixture
-async def db_session_with_commit():
+async def db_session_with_commit() -> AsyncSession:
     async with async_session_maker() as session:
         try:
             yield session
@@ -51,7 +51,7 @@ async def db_session_with_commit():
 
 
 @pytest.fixture
-async def db_session_without_commit():
+async def db_session_without_commit() -> AsyncSession:
     async with async_session_maker() as session:
         try:
             yield session
