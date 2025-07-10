@@ -35,7 +35,7 @@ async def run_async_migrations():
                 config=alembic_cfg, autogenerate=True, message="test_migration"
             )
         )
-
+    print("Миграция Создана")
     async with engine.begin() as conn:
         await conn.run_sync(lambda conn: command.upgrade(alembic_cfg, "head"))
 
@@ -62,35 +62,31 @@ async def prepare_database():
 
 @pytest_asyncio.fixture
 async def db_session():
-    session = async_session_maker()
-    async with session() as s:
+    async with async_session_maker() as session:
         try:
-            yield s
-            await s.rollback()
+            yield session
+            await session.rollback()
         finally:
-            await s.close()
+            await session.close()
 
 
 @pytest_asyncio.fixture
 async def db_session_with_commit():
-    session = async_session_maker()
-    async with session() as s:
+    async with async_session_maker() as session:
         try:
-            yield s
-            await s.commit()
+            yield session
+            await session.commit()
         except Exception:
-            await s.rollback()
+            await session.rollback()
             raise
         finally:
-            await s.close()
+            await session.close()
 
 
 @pytest.fixture
 def client():
-    session_factory = async_session_maker
-
     async def override_get_db():
-        async with session_factory() as session:
+        async with async_session_maker() as session:
             try:
                 yield session
                 await session.commit()

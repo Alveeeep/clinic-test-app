@@ -19,7 +19,7 @@ async def test_create_appointment(client, db_session):
         "start_time": datetime(2025, 7, 10, 4, 30).isoformat(),
     }
 
-    create_response = await client.post("/appointments", json=appointment_data)
+    create_response = await client.post("/appointments", data=appointment_data)
     assert create_response.status_code == status.HTTP_200_OK
     assert await create_response.json() == {"status": "ok"}
 
@@ -32,7 +32,7 @@ async def test_create_invalid_appointment(client):
         "start_time": datetime(2025, 7, 10, 14, 30).isoformat(),
     }
 
-    response = await client.post("/appointments", json=invalid_data)
+    response = await client.post("/appointments", data=invalid_data)
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
 
@@ -44,8 +44,8 @@ async def test_create_duplicate_appointment(client):
         "start_time": datetime(2025, 7, 11, 10, 0).isoformat(),
     }
 
-    response1 = await client.post("/appointments", json=appointment_data)
+    response1 = await client.post("/appointments", data=appointment_data)
     assert response1.status_code == status.HTTP_200_OK
 
-    response2 = await client.post("/appointments", json=appointment_data)
+    response2 = await client.post("/appointments", data=appointment_data)
     assert response2.status_code == status.HTTP_400_BAD_REQUEST
