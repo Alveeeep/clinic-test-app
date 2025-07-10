@@ -15,12 +15,11 @@ async_session_maker = async_sessionmaker(
 @pytest_asyncio.fixture
 async def db_session() -> AsyncSession:
     async with async_session_maker() as session:
-        transaction = await session.begin()
         try:
             yield session
         finally:
-            if transaction.is_active:
-                await transaction.rollback()
+            if session.in_transaction():
+                await session.rollback()
             await session.close()
 
 
@@ -45,6 +44,9 @@ async def client():
 
 @pytest_asyncio.fixture(autouse=True)
 async def prevent_parallel_transactions(db_session: AsyncSession):
-    async with db_session.begin_nested() as transaction:
+    if db_session.in_transaction():
+        async with db_session.begin_nested() as savepoint:
+            yield
+            await savepoint.rollback()
+    else:
         yield
-        await transaction.rollback()
