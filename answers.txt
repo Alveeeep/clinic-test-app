@@ -1,0 +1,12 @@
+Python - 9
+FastApi - 8
+Flask - 7
+Docker/Docker compose - 7
+GitHub Actions - 7
+SQL - 7
+Код и ИИ - 8
+Встраивание решений - 9
+
+Английский - Да
+
+Как трекаете задачи: и Scrum и Kanban (не принципиально)
