@@ -15,6 +15,7 @@ async def async_engine():
         await conn.run_sync(Base.metadata.drop_all)
     await engine.dispose()
 
+
 @pytest_asyncio.fixture
 async def async_session(async_engine):
     async_session_local = async_sessionmaker(
