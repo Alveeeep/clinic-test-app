@@ -2,36 +2,27 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from app.database.db import engine
+from app.database.db import engine, Base
 from app.main import app
 
 
-# Настройка сессий с явным управлением транзакциями
-async_session_maker = async_sessionmaker(
-    engine, autoflush=False, expire_on_commit=False
-)
-
-
-@pytest_asyncio.fixture
-async def db_session() -> AsyncSession:
-    async with async_session_maker() as session:
-        try:
-            yield session
-        finally:
-            if session.in_transaction():
-                await session.rollback()
-            await session.close()
-
+@pytest_asyncio.fixture(scope="session")
+async def async_engine():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield engine
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+    await engine.dispose()
 
 @pytest_asyncio.fixture
-async def db_session_with_commit() -> AsyncSession:
-    async with async_session_maker() as session:
-        async with session.begin():
-            try:
-                yield session
-            except Exception:
-                await session.rollback()
-                raise
+async def async_session(async_engine):
+    async_session_local = async_sessionmaker(
+        autocommit=False, autoflush=False, bind=async_engine, class_=AsyncSession
+    )
+    async with async_session_local() as session:
+        yield session
+        await session.rollback()
 
 
 @pytest_asyncio.fixture
@@ -40,13 +31,3 @@ async def client():
         transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
         yield client
-
-
-@pytest_asyncio.fixture(autouse=True)
-async def prevent_parallel_transactions(db_session: AsyncSession):
-    if db_session.in_transaction():
-        async with db_session.begin_nested() as savepoint:
-            yield
-            await savepoint.rollback()
-    else:
-        yield
