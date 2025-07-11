@@ -8,8 +8,8 @@ from app.schemas.appointment import AppointmentCreate
 
 
 @pytest.mark.asyncio
-async def test_create_appointment(db_session):
-    dao = AppointmentsDAO(session=db_session)
+async def test_create_appointment(async_session):
+    dao = AppointmentsDAO(session=async_session)
     data = {
         "patient_name": "ТестЮзер123",
         "doctor_id": 1,
@@ -23,8 +23,8 @@ async def test_create_appointment(db_session):
 
 
 @pytest.mark.asyncio
-async def test_create_bad_pair(db_session):
-    dao = AppointmentsDAO(session=db_session)
+async def test_create_bad_pair(async_session):
+    dao = AppointmentsDAO(session=async_session)
 
     data1 = {
         "patient_name": "ТестЮзер222",
